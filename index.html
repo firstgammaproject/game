@@ -58,8 +58,8 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
 (function(){
   'use strict';
 
-  // ── Replace with your deployed Cloudflare Worker URL ──
-  const WORKER_URL = 'https://YOUR_WORKER.YOUR_USERNAME.workers.dev';
+  const WORKER_URL = 'helperunrelated.gammatwo.workers.dev
+';
 
   let _pts=0,_total=0;
   const _owned={};
@@ -77,7 +77,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
   ];
   UPG.forEach(u=>_owned[u.id]=0);
 
-  // Anti-cheat hash — uses Math.floor to avoid float drift
+  
   function mkhash(p,t,o){
     let h=Math.floor(p)^Math.floor(t)^0xBEEF;
     UPG.forEach(u=>h^=(o[u.id]||0)*37);
@@ -96,7 +96,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
   function aps(){return UPG.filter(u=>u.type==='auto').reduce((a,u)=>a+u.val*_owned[u.id],0)}
   function cost(u){return Math.floor(u.base*Math.pow(1.5,_owned[u.id]))}
 
-  // force=true bypasses the 60ms throttle so clicks/buys feel instant
+  
   function click(){const p=cpow();_pts+=p;_total+=p;seal();render(true)}
   function buy(id){
     const u=UPG.find(x=>x.id===id),c=cost(u);
@@ -147,7 +147,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
 
   document.getElementById('btn').addEventListener('click',click);
 
-  // ── Secret trigger — no visual hint exists ──
+  /
   document.getElementById('title').addEventListener('click',function(){
     if(_total<30000)return;
     document.getElementById('game').style.visibility='hidden';
@@ -155,7 +155,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
     document.getElementById('api-input').focus();
   });
 
-  // ── API input — validates against Worker, answer never in this file ──
+  
   document.getElementById('api-input').addEventListener('keydown',async function(e){
     if(e.key!=='Enter')return;
     const val=this.value.trim();
@@ -176,7 +176,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
         this.disabled=true;
       }
     }catch(_){}
-    // wrong answer: nothing happens — no hint
+    
   });
 
   seal();render(true);
