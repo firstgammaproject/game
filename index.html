@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Point Clicker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff9e6;color:#333;font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px)}
+h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:2px;text-shadow:3px 3px 0 #ffcc00}
+#sub{font-size:.8rem;color:#aaa;margin-bottom:20px}
+#counter{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:4px}
+#rate{font-size:.82rem;color:#888;margin-bottom:18px}
+#btn{width:150px;height:150px;border-radius:50%;border:5px solid #ff6b35;background:#ffcc00;color:#ff6b35;font-family:'Fredoka One',cursive;font-size:1.4rem;cursor:pointer;box-shadow:0 6px 0 #e6a800,0 8px 12px rgba(0,0,0,.15);transition:transform .07s,box-shadow .07s;user-select:none}
+#btn:active{transform:translateY(4px);box-shadow:0 2px 0 #e6a800,0 4px 6px rgba(0,0,0,.1)}
+#btn:hover{background:#ffd630}
+#upgrades{margin-top:28px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px}
+.upg{display:flex;justify-content:space-between;align-items:center;border:3px solid #ffcc00;border-radius:10px;padding:10px 14px;background:#fff;cursor:pointer;transition:background .1s,border-color .1s;box-shadow:0 3px 0 #e6a800}
+.upg:hover:not(.locked){background:#fffbe6;border-color:#ff6b35}
+.upg.locked{opacity:.45;cursor:not-allowed;box-shadow:none}
+.upg-name{font-family:'Fredoka One',cursive;font-size:1rem;color:#ff6b35}
+.upg-desc{font-size:.72rem;color:#999;margin-top:1px}
+.upg-cost{font-family:'Fredoka One',cursive;font-size:.95rem;color:#ffaa00;white-space:nowrap;margin-left:14px}
+#log{margin-top:18px;width:100%;max-width:440px;font-size:.72rem;color:#bbb;height:52px;overflow:hidden;display:flex;flex-direction:column-reverse}
+</style>
+</head>
+<body>
+<h1>Point Clicker</h1>
+<div id="sub">click the button. get points. buy stuff.</div>
+<div id="counter">0 points</div>
+<div id="rate">0 pts/s</div>
+<button id="btn">CLICK</button>
+<div id="upgrades"></div>
+<div id="log"></div>
+ 
+<script>
+(function(){
+  'use strict';
+  let _pts=0,_total=0;
+  const _owned={};
+  let _hash=0;
+ 
+  const UPG=[
+    {id:'a',name:'Point Adder',      desc:'click gives +1 extra point',   base:10,   type:'click',val:1},
+    {id:'b',name:'Point Farm',       desc:'makes 1 point per second',      base:50,   type:'auto', val:1},
+    {id:'c',name:'Better Adder',     desc:'click gives +5 extra points',   base:180,  type:'click',val:5},
+    {id:'d',name:'Big Farm',         desc:'makes 5 points per second',     base:500,  type:'auto', val:5},
+    {id:'e',name:'Super Clicker',    desc:'click gives +20 extra points',  base:1400, type:'click',val:20},
+    {id:'f',name:'Point Factory',    desc:'makes 20 points per second',    base:3500, type:'auto', val:20},
+    {id:'g',name:'Mega Adder',       desc:'click gives +100 extra points', base:10000,type:'click',val:100},
+    {id:'h',name:'Point Warehouse',  desc:'makes 100 points per second',   base:28000,type:'auto', val:100},
+  ];
+  UPG.forEach(u=>_owned[u.id]=0);
+ 
+  function mkhash(p,t,o){
+    let h=(p|0)^(t|0)^0xBEEF;
+    UPG.forEach(u=>h^=(o[u.id]||0)*37);
+    return h&0xFFFFFF;
+  }
+  function seal(){_hash=mkhash(_pts,_total,_owned)}
+  function check(){
+    if(mkhash(_pts,_total,_owned)!==_hash){
+      _pts=0;_total=0;UPG.forEach(u=>_owned[u.id]=0);
+      seal();log('something went wrong. resetting.');render();
+    }
+  }
+  setInterval(check,800);
+ 
+  function cpow(){return 1+UPG.filter(u=>u.type==='click').reduce((a,u)=>a+u.val*_owned[u.id],0)}
+  function aps(){return UPG.filter(u=>u.type==='auto').reduce((a,u)=>a+u.val*_owned[u.id],0)}
+  function cost(u){return Math.floor(u.base*Math.pow(1.5,_owned[u.id]))}
+ 
+  function click(){const p=cpow();_pts+=p;_total+=p;seal();render()}
+  function buy(id){
+    const u=UPG.find(x=>x.id===id),c=cost(u);
+    if(_pts<c)return;
+    _pts-=c;_owned[u.id]++;seal();log('bought: '+u.name);render();
+  }
+ 
+  let last=performance.now();
+  function tick(now){
+    const dt=(now-last)/1000;last=now;
+    const r=aps();
+    if(r>0){_pts+=r*dt;_total+=r*dt;seal()}
+    render();requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+ 
+  const logEl=document.getElementById('log');
+  function log(msg){
+    const d=document.createElement('div');d.textContent='> '+msg;
+    logEl.prepend(d);if(logEl.children.length>4)logEl.lastChild.remove();
+  }
+ 
+  const ctr=document.getElementById('counter'),rat=document.getElementById('rate'),upEl=document.getElementById('upgrades');
+  function fmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n)+''}
+  let lr=0;
+  function render(){
+    const now=performance.now();if(now-lr<60)return;lr=now;
+    ctr.textContent=fmt(_pts)+' points';
+    rat.textContent=aps().toFixed(1)+' pts/s  |  '+cpow()+' pts/click';
+    upEl.innerHTML='';
+    UPG.forEach(u=>{
+      const c=cost(u),can=_pts>=c,d=document.createElement('div');
+      d.className='upg'+(can?'':' locked');
+      d.innerHTML='<div><div class="upg-name">'+u.name+' <span style="color:#ccc;font-family:Nunito,sans-serif;font-size:.8rem">['+_owned[u.id]+']</span></div><div class="upg-desc">'+u.desc+'</div></div><div class="upg-cost">'+fmt(c)+' pts</div>';
+      if(can)d.onclick=()=>buy(u.id);
+      upEl.appendChild(d);
+    });
+  }
+ 
+  document.getElementById('btn').addEventListener('click',click);
+  seal();render();
+ 
+  console.log('%c[point clicker]','color:#ff6b35;font-weight:bold');
+  console.log('%cyou opened the console. interesting.','color:#aaa');
+})();
+</script>
+</body>
+</html>
