@@ -172,15 +172,15 @@ h1.unlocked{cursor:pointer;animation:pulse 1.5s infinite}
       const data=await res.json();
       if(data.correct){
         argResult.className='ok';
-        argResult.textContent='// correct. the signal is clear.';
+        argResult.textContent='// correct, red blue blue';
       } else {
         argResult.className='fail';
-        argResult.textContent='// incorrect. try again.';
+        argResult.textContent='// incorrect, later again';
         argSubmit.disabled=false;
       }
     }catch{
       argResult.className='fail';
-      argResult.textContent='// connection failed.';
+      argResult.textContent='// incorrect, nice try';
       argSubmit.disabled=false;
     }
   }
