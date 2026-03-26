@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#fff9e6;color:#333;font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px)}
-h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:2px;text-shadow:3px 3px 0 #ffcc00;cursor:default;user-select:none}
+h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:2px;text-shadow:3px 3px 0 #ffcc00}
 #sub{font-size:.8rem;color:#aaa;margin-bottom:20px}
 #counter{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:4px}
 #rate{font-size:.82rem;color:#888;margin-bottom:18px}
@@ -16,54 +16,32 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
 #btn:active{transform:translateY(4px);box-shadow:0 2px 0 #e6a800,0 4px 6px rgba(0,0,0,.1)}
 #btn:hover{background:#ffd630}
 #upgrades{margin-top:28px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px}
-.upg{display:flex;justify-content:space-between;align-items:center;border:3px solid #ffcc00;border-radius:10px;padding:10px 14px;background:#fff;cursor:pointer;transition:background .1s,border-color .1s;box-shadow:0 3px 0 #e6a800}
+.upg{display:flex;justify-content:space-between;align-items:center;border:3px solid #ffcc00;border-radius:10px;padding:10px 14px;background:#fff;cursor:pointer;transition:background .1s,border-color .1s;box-shadow:0 3px 0 #e6a800;user-select:none}
 .upg:hover:not(.locked){background:#fffbe6;border-color:#ff6b35}
-.upg.locked{opacity:.45;cursor:not-allowed;box-shadow:none;pointer-events:none}
+.upg.locked{opacity:.45;cursor:not-allowed;box-shadow:none}
 .upg-name{font-family:'Fredoka One',cursive;font-size:1rem;color:#ff6b35}
 .upg-desc{font-size:.72rem;color:#999;margin-top:1px}
+.upg-count{color:#ccc;font-family:Nunito,sans-serif;font-size:.8rem}
 .upg-cost{font-family:'Fredoka One',cursive;font-size:.95rem;color:#ffaa00;white-space:nowrap;margin-left:14px}
 #log{margin-top:18px;width:100%;max-width:440px;font-size:.72rem;color:#bbb;height:52px;overflow:hidden;display:flex;flex-direction:column-reverse}
-
-
-#api-screen{display:none;position:fixed;inset:0;background:#080808;flex-direction:column;justify-content:center;align-items:flex-start;padding:10vw;z-index:999}
-#api-screen.active{display:flex}
-#api-line{display:flex;align-items:center;font-size:1.5rem;font-family:'Courier New',monospace;color:#c8c8c8}
-#api-input{background:transparent;border:none;outline:none;color:#e8e8e8;font-family:'Courier New',monospace;font-size:1.5rem;caret-color:#e8e8e8;width:50vw;letter-spacing:.02em}
-#api-result{margin-top:28px;font-size:.95rem;font-family:'Courier New',monospace;color:#888;opacity:0;transition:opacity .6s;max-width:500px;line-height:1.7}
-#api-result.show{opacity:1}
 </style>
 </head>
 <body>
-
-<div id="game">
-  <h1 id="title">Point Clicker</h1>
-  <div id="sub">click the button. get points. buy stuff.</div>
-  <div id="counter">0 points</div>
-  <div id="rate">0 pts/s</div>
-  <button id="btn">CLICK</button>
-  <div id="upgrades"></div>
-  <div id="log"></div>
-</div>
-
-<div id="api-screen">
-  <div id="api-line">
-    <span>API:&nbsp;</span>
-    <input id="api-input" type="text" autocomplete="off" spellcheck="false">
-  </div>
-  <div id="api-result"></div>
-</div>
-
+<h1>Point Clicker</h1>
+<div id="sub">click the button. get points. buy stuff.</div>
+<div id="counter">0 points</div>
+<div id="rate">0 pts/s</div>
+<button id="btn">CLICK</button>
+<div id="upgrades"></div>
+<div id="log"></div>
+ 
 <script>
 (function(){
   'use strict';
-
-  // 
-  const WORKER_URL = 'https://helperunrelated.gammatwo.workers.dev/';
-
   let _pts=0,_total=0;
   const _owned={};
   let _hash=0;
-
+ 
   const UPG=[
     {id:'a',name:'Point Adder',     desc:'click gives +1 extra point',   base:10,   type:'click',val:1},
     {id:'b',name:'Point Farm',      desc:'makes 1 point per second',      base:50,   type:'auto', val:1},
@@ -75,10 +53,9 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
     {id:'h',name:'Point Warehouse', desc:'makes 100 points per second',   base:28000,type:'auto', val:100},
   ];
   UPG.forEach(u=>_owned[u.id]=0);
-
-  //
+ 
   function mkhash(p,t,o){
-    let h=Math.floor(p)^Math.floor(t)^0xBEEF;
+    let h=(p|0)^(t|0)^0xBEEF;
     UPG.forEach(u=>h^=(o[u.id]||0)*37);
     return h&0xFFFFFF;
   }
@@ -86,99 +63,78 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
   function check(){
     if(mkhash(_pts,_total,_owned)!==_hash){
       _pts=0;_total=0;UPG.forEach(u=>_owned[u.id]=0);
-      seal();log('something went wrong. resetting.');render(true);
+      seal();log('something went wrong. resetting.');render();
     }
   }
   setInterval(check,800);
-
+ 
   function cpow(){return 1+UPG.filter(u=>u.type==='click').reduce((a,u)=>a+u.val*_owned[u.id],0)}
   function aps(){return UPG.filter(u=>u.type==='auto').reduce((a,u)=>a+u.val*_owned[u.id],0)}
   function cost(u){return Math.floor(u.base*Math.pow(1.5,_owned[u.id]))}
-
-  //
-  function click(){const p=cpow();_pts+=p;_total+=p;seal();render(true)}
+ 
+  function click(){const p=cpow();_pts+=p;_total+=p;seal();render()}
   function buy(id){
     const u=UPG.find(x=>x.id===id),c=cost(u);
     if(_pts<c)return;
-    _pts-=c;_owned[u.id]++;seal();log('bought: '+u.name);render(true);
+    _pts-=c;_owned[u.id]++;seal();log('bought: '+u.name);render();
   }
-
+ 
   let last=performance.now();
   function tick(now){
     const dt=(now-last)/1000;last=now;
     const r=aps();
     if(r>0){_pts+=r*dt;_total+=r*dt;seal()}
-    render();
-    requestAnimationFrame(tick);
+    render();requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-
+ 
   const logEl=document.getElementById('log');
   function log(msg){
     const d=document.createElement('div');d.textContent='> '+msg;
     logEl.prepend(d);if(logEl.children.length>4)logEl.lastChild.remove();
   }
-
-  const ctr=document.getElementById('counter'),rat=document.getElementById('rate'),upEl=document.getElementById('upgrades');
+ 
+  
+  const upEl=document.getElementById('upgrades');
+  const _nodes={};
+  UPG.forEach(u=>{
+    const d=document.createElement('div');
+    d.className='upg locked';
+    d.dataset.id=u.id;
+    d.innerHTML=
+      '<div><div class="upg-name">'+u.name+
+      ' <span class="upg-count">[0]</span></div>'+
+      '<div class="upg-desc">'+u.desc+'</div></div>'+
+      '<div class="upg-cost">-- pts</div>';
+    upEl.appendChild(d);
+    _nodes[u.id]=d;
+  });
+ 
+  // Single delegated listener on container — survives DOM updates
+  upEl.addEventListener('click',function(e){
+    const el=e.target.closest('.upg');
+    if(!el||el.classList.contains('locked'))return;
+    buy(el.dataset.id);
+  });
+ 
+  const ctr=document.getElementById('counter'),rat=document.getElementById('rate');
   function fmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n)+''}
-
   let lr=0;
-  function render(force=false){
-    const now=performance.now();
-    if(!force&&now-lr<60)return;
-    lr=now;
+  function render(){
+    const now=performance.now();if(now-lr<60)return;lr=now;
     ctr.textContent=fmt(_pts)+' points';
     rat.textContent=aps().toFixed(1)+' pts/s  |  '+cpow()+' pts/click';
-    upEl.innerHTML='';
     UPG.forEach(u=>{
-      const c=cost(u),can=_pts>=c,d=document.createElement('div');
-      d.className='upg'+(can?'':' locked');
-      d.innerHTML=
-        '<div>'+
-          '<div class="upg-name">'+u.name+' <span style="color:#ccc;font-family:Nunito,sans-serif;font-size:.8rem">['+_owned[u.id]+']</span></div>'+
-          '<div class="upg-desc">'+u.desc+'</div>'+
-        '</div>'+
-        '<div class="upg-cost">'+fmt(c)+' pts</div>';
-      if(can) d.addEventListener('click',()=>buy(u.id));
-      upEl.appendChild(d);
+      const c=cost(u),can=_pts>=c,d=_nodes[u.id];
+      d.classList.toggle('locked',!can);
+      d.querySelector('.upg-count').textContent='['+_owned[u.id]+']';
+      d.querySelector('.upg-cost').textContent=fmt(c)+' pts';
     });
   }
-
+ 
   document.getElementById('btn').addEventListener('click',click);
-
-  // 
-  document.getElementById('title').addEventListener('click',function(){
-    if(_total<30000)return;
-    document.getElementById('game').style.visibility='hidden';
-    document.getElementById('api-screen').classList.add('active');
-    document.getElementById('api-input').focus();
-  });
-
-  //
-  document.getElementById('api-input').addEventListener('keydown',async function(e){
-    if(e.key!=='Enter')return;
-    const val=this.value.trim();
-    if(!val)return;
-    this.value='';
-    const resultEl=document.getElementById('api-result');
-    resultEl.classList.remove('show');
-    try{
-      const res=await fetch(WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({answer:val})
-      });
-      const data=await res.json();
-      if(data.correct){
-        resultEl.textContent='Currently fixing, but for now you have done well';
-        resultEl.classList.add('show');
-        this.disabled=true;
-      }
-    }catch(_){}
-    //
-  });
-
-  seal();render(true);
+  seal();render();
+ 
   console.log('%c[point clicker]','color:#ff6b35;font-weight:bold');
   console.log('%cyou opened the console. interesting.','color:#aaa');
 })();
