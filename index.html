@@ -8,7 +8,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#fff9e6;color:#333;font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,#ffe8a0 39px,#ffe8a0 40px)}
-h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:2px;text-shadow:3px 3px 0 #ffcc00}
+h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:2px;text-shadow:3px 3px 0 #ffcc00;transition:all .3s}
+h1.unlocked{cursor:pointer;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{text-shadow:3px 3px 0 #ffcc00}50%{text-shadow:3px 3px 0 #ffcc00,0 0 18px #ff6b35}}
 #sub{font-size:.8rem;color:#aaa;margin-bottom:20px}
 #counter{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-bottom:4px}
 #rate{font-size:.82rem;color:#888;margin-bottom:18px}
@@ -94,7 +96,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
     logEl.prepend(d);if(logEl.children.length>4)logEl.lastChild.remove();
   }
  
-  
+  -
   const upEl=document.getElementById('upgrades');
   const _nodes={};
   UPG.forEach(u=>{
@@ -110,7 +112,7 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
     _nodes[u.id]=d;
   });
  
-  // Single delegated listener on container — survives DOM updates
+  
   upEl.addEventListener('click',function(e){
     const el=e.target.closest('.upg');
     if(!el||el.classList.contains('locked'))return;
@@ -118,12 +120,25 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
   });
  
   const ctr=document.getElementById('counter'),rat=document.getElementById('rate');
+  const h1El=document.querySelector('h1');
+  let _titleUnlocked=false;
+  h1El.addEventListener('click',function(){
+    if(!_titleUnlocked)return;
+    
+    log('you found it. now what?');
+  });
+ 
   function fmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n)+''}
   let lr=0;
   function render(){
     const now=performance.now();if(now-lr<60)return;lr=now;
     ctr.textContent=fmt(_pts)+' points';
     rat.textContent=aps().toFixed(1)+' pts/s  |  '+cpow()+' pts/click';
+    if(!_titleUnlocked&&_total>=30000){
+      _titleUnlocked=true;
+      h1El.classList.add('unlocked');
+      log('something feels different...');
+    }
     UPG.forEach(u=>{
       const c=cost(u),can=_pts>=c,d=_nodes[u.id];
       d.classList.toggle('locked',!can);
@@ -141,3 +156,4 @@ h1{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ff6b35;margin-botto
 </script>
 </body>
 </html>
+ 
